@@ -1,0 +1,113 @@
+{
+    "core_questions": {
+        "Q1": {
+            "question": "What is the core problem you want the AI agent to solve for your business?",
+            "answer": "customer onboarding "
+        },
+        "Q2": {
+            "question": "Who is your primary audience or user interacting with this AI?",
+            "answer": "b2b and b2c"
+        },
+        "Q3": {
+            "question": "Which channel(s) will the AI agent operate on? (e.g., website, WhatsApp, voice IVR, etc.)",
+            "answer": "website"
+        },
+        "Q4": {
+            "question": "What business outcomes do you want the AI to drive? (e.g., reduce support time, increase sales, qualify leads)",
+            "answer": "increase sales"
+        },
+        "Q5": {
+            "question": "What tone or personality should your AI agent reflect? (e.g., formal, casual, friendly, luxury)",
+            "answer": "luxury"
+        },
+        "Q6": {
+            "question": "Are there any critical workflows or systems the agent must integrate with?",
+            "answer": "yes"
+        },
+        "Q7": {
+            "question": "How should the agent handle unknowns or sensitive topics?",
+            "answer": "fallback to email service"
+        },
+        "Q8": {
+            "question": "Do you want the agent to follow a fixed script, be dynamic, or a mix?",
+            "answer": "dynamic."
+        },
+        "Q9": {
+            "question": "What kind of data privacy or compliance rules should we consider? (e.g., GDPR, HIPAA, local laws)",
+            "answer": "local laws."
+        },
+        "Q10": {
+            "question": "Do you already have materials (FAQs, scripts, tone guides) we can use to train the AI?",
+            "answer": "yes."
+        }
+    },
+    "business_profile": {
+        "-_**business_objective**": "Enhance sales through streamlined customer onboarding by delivering a dynamic, luxury-toned AI experience that reduces friction and drives conversions.",
+        "-_**audience_&_channel**": "Targets both B2B and B2C users via a website channel, with a focus on seamless integration and fallback to email for unresolved queries.",
+        "-_**industry_context**": "Not explicitly specified; however, the agent must adhere to local laws, integrate with existing systems, and reflect a luxury-oriented personality for a high-end user experience."
+    },
+    "tag_mapping": {
+        "#intent_clarity": "Customer onboarding is the core problem, requiring clear intent alignment to streamline sales processes.",
+        "#channel_behavior": "Website as the primary channel necessitates optimized UI/UX flow and responsive interaction design.",
+        "#tone_variation": "Luxury tone requires sophisticated language patterns and high-end vocabulary calibration.",
+        "#fallback_rules": "Email fallback for unresolved queries ensures compliance with service level expectations.",
+        "#integration_scope": "System integration is required to synchronize with existing CRM and sales tracking platforms.",
+        "#training_data_source": "Existing materials (FAQs, scripts) provide foundational content for AI training and tone consistency.",
+        "#compliance_constraints": "Local laws mandate data handling protocols and privacy protections in user interactions.",
+        "#persona_control": "Luxury-oriented personality requires strict control over language style, error handling, and escalation paths.",
+        "#recommendation_logic": "Dynamic approach enables personalized product/service suggestions during onboarding.",
+        "#booking_handling": ""
+    },
+    "tag_questions": {
+        "#intent_clarity": {
+            "question": "What specific intents or sales stages should the AI prioritize identifying during customer onboarding to align with the goal of increasing sales?",
+            "reason": "Customer onboarding is the core problem, requiring clear intent alignment to streamline sales processes.",
+            "answer": "first of all segement the business, second check the area of the country of the business that will be operating in, then check the population of this area or country, "
+        },
+        "#channel_behavior": {
+            "question": "What specific website features, user interaction points, or UI elements should the AI agent interact with to optimize the onboarding experience?",
+            "reason": "Website as the primary channel necessitates optimized UI/UX flow and responsive interaction design.",
+            "answer": "registeration form FAQ forms, pricing page, terms and conditions, community page."
+        },
+        "#tone_variation": {
+            "question": "What specific language patterns, vocabulary examples, or tone guide directives should the AI follow to maintain a consistent luxury brand voice across B2B and B2C interactions?",
+            "reason": "Luxury tone requires sophisticated language patterns and high-end vocabulary calibration.",
+            "answer": "more into formal, however with using sir and madam to address each customer addionally the ai agent should be able to segement the customer based on the company profile, or for B2C using for recieved cookies."
+        },
+        "#fallback_rules": {
+            "question": "What specific criteria should trigger the email fallback, and what details (e.g., subject lines, content structure, personalization rules) should the email include to ensure clarity and compliance?",
+            "reason": "Email fallback for unresolved queries ensures compliance with service level expectations.",
+            "answer": "direct ask from the customer, feeling the customer being angry from repeated questions, or you don't have ability to fill customer needs."
+        },
+        "#integration_scope": {
+            "question": "What specific CRM platforms, sales tracking tools, or workflow automation systems must the AI agent integrate with to ensure seamless data synchronization and process alignment?",
+            "reason": "System integration is required to synchronize with existing CRM and sales tracking platforms.",
+            "answer": "zoho"
+        },
+        "#training_data_source": {
+            "question": "What specific types of training materials (e.g., detailed FAQs, tone guides, example scripts, customer interaction logs) are available to ensure the AI’s responses align with the luxury brand voice and dynamic onboarding process?",
+            "reason": "Existing materials (FAQs, scripts) provide foundational content for AI training and tone consistency.",
+            "answer": "I have detailed FAQs however I will need the AI agent to automatically adapt based on the customer chats and needs."
+        },
+        "#compliance_constraints": {
+            "question": "What specific local laws (e.g., data storage requirements, consent protocols, transparency rules) and data handling protocols (e.g., encryption standards, user rights management) must the AI agent strictly adhere to during customer onboarding?",
+            "reason": "Local laws mandate data handling protocols and privacy protections in user interactions.",
+            "answer": "standard data protection level"
+        },
+        "#persona_control": {
+            "question": "What specific guidelines or protocols should the AI follow to maintain the luxury persona during error handling, escalation, or dynamic response generation, ensuring consistency with brand standards?",
+            "reason": "Luxury-oriented personality requires strict control over language style, error handling, and escalation paths.",
+            "answer": "You will follow IBM standard guidelines."
+        },
+        "#recommendation_logic": {
+            "question": "What specific data points, user behaviors, or integration sources (e.g., past purchases, browsing history, CRM insights) should the AI leverage to generate contextually relevant, luxury-aligned product/service recommendations during onboarding, while ensuring compliance with data privacy constraints?",
+            "reason": "Dynamic approach enables personalized product/service suggestions during onboarding.",
+            "answer": "AI agent will have access to my data in terms of CRM, and the sales pipeline."
+        },
+        "#booking_handling": {
+            "question": "What specific booking systems, user interaction protocols (e.g., scheduling, confirmation, modification processes), or luxury-aligned service standards must the AI agent integrate and manage during customer onboarding to ensure seamless, high-end booking experiences while adhering to data privacy and compliance requirements?",
+            "reason": "",
+            "answer": "for schudeling, appointment confirmation, modification process, you will use our email service and currently we are using google services."
+        }
+    }
+}

@@ -1,0 +1,113 @@
+{
+    "core_questions": {
+        "Q1": {
+            "question": "What is the core problem you want the AI agent to solve for your business?",
+            "answer": "dsf"
+        },
+        "Q2": {
+            "question": "Who is your primary audience or user interacting with this AI?",
+            "answer": "sadf"
+        },
+        "Q3": {
+            "question": "Which channel(s) will the AI agent operate on? (e.g., website, WhatsApp, voice IVR, etc.)",
+            "answer": "asdf"
+        },
+        "Q4": {
+            "question": "What business outcomes do you want the AI to drive? (e.g., reduce support time, increase sales, qualify leads)",
+            "answer": "asdf"
+        },
+        "Q5": {
+            "question": "What tone or personality should your AI agent reflect? (e.g., formal, casual, friendly, luxury)",
+            "answer": "a"
+        },
+        "Q6": {
+            "question": "Are there any critical workflows or systems the agent must integrate with?",
+            "answer": "sdf"
+        },
+        "Q7": {
+            "question": "How should the agent handle unknowns or sensitive topics?",
+            "answer": "as"
+        },
+        "Q8": {
+            "question": "Do you want the agent to follow a fixed script, be dynamic, or a mix?",
+            "answer": "df"
+        },
+        "Q9": {
+            "question": "What kind of data privacy or compliance rules should we consider? (e.g., GDPR, HIPAA, local laws)",
+            "answer": "asd"
+        },
+        "Q10": {
+            "question": "Do you already have materials (FAQs, scripts, tone guides) we can use to train the AI?",
+            "answer": "f"
+        }
+    },
+    "business_profile": {
+        "-_**business_objective**": "Resolve \"dsf\" (core problem) and drive outcomes related to \"asdf\" (e.g., operational efficiency, sales, lead qualification).",
+        "-_**audience_&_channel**": "Target \"sadf\" (primary audience) via \"asdf\" (e.g., website, WhatsApp, voice IVR).",
+        "-_**industry_context**": "No specific industry mentioned; compliance rules referenced are \"asd\" (e.g., GDPR, HIPAA, local laws)."
+    },
+    "tag_mapping": {
+        "#intent_clarity": "Ambiguous core problem ('dsf') requires further clarification to align AI agent's purpose with business needs.",
+        "#channel_behavior": "Channel specification ('asdf') is unclear; needs definition (e.g., website, WhatsApp) to configure user interaction patterns.",
+        "#tone_variation": "Tone answer ('a') is overly vague; requires refinement to define specific personality traits (e.g., formal, friendly).",
+        "#fallback_rules": "Handling of unknowns/sensitive topics ('as') is unspecified; requires explicit guidelines for edge cases.",
+        "#integration_scope": "Critical workflows ('sdf') are undefined; needs detailed system integration requirements for backend compatibility.",
+        "#training_data_source": "No training materials ('f') provided; AI agent will require scratch training or external data sourcing.",
+        "#compliance_constraints": "Compliance rules ('asd') reference GDPR/HIPAA/local laws; requires explicit legal framework mapping for data handling.",
+        "#persona_control": "Personality definition ('a') is insufficient; needs structured persona parameters for consistent user engagement.",
+        "#recommendation_logic": "Not applicable - no information provided about recommendation systems or decision-making rules.",
+        "#booking_handling": "Not applicable - no information provided about scheduling, reservations, or time-sensitive interactions."
+    },
+    "tag_questions": {
+        "#intent_clarity": {
+            "question": "What is the specific problem or challenge that the AI agent must address to achieve the business outcomes related to \"asdf\"?",
+            "reason": "Ambiguous core problem ('dsf') requires further clarification to align AI agent's purpose with business needs.",
+            "answer": "asdff"
+        },
+        "#channel_behavior": {
+            "question": "Which specific channels (e.g., website chat, WhatsApp, voice IVR, app messaging) should the AI agent prioritize for user interactions?",
+            "reason": "Channel specification ('asdf') is unclear; needs definition (e.g., website, WhatsApp) to configure user interaction patterns.",
+            "answer": "dfg"
+        },
+        "#tone_variation": {
+            "question": "What specific personality traits (e.g., formal, casual, empathetic, professional) should the AI agent prioritize to align with the primary audience's expectations and the business outcomes?",
+            "reason": "Tone answer ('a') is overly vague; requires refinement to define specific personality traits (e.g., formal, friendly).",
+            "answer": "dsdsf"
+        },
+        "#fallback_rules": {
+            "question": "What specific procedures or protocols (e.g., escalation to human agents, data redaction, compliance-based responses) should the AI agent follow when encountering unknown queries or sensitive topics?",
+            "reason": "Handling of unknowns/sensitive topics ('as') is unspecified; requires explicit guidelines for edge cases.",
+            "answer": "sd"
+        },
+        "#integration_scope": {
+            "question": "Which specific systems or workflows (e.g., CRM, ERP, ticketing systems) must the AI agent integrate with to ensure seamless backend operations and data synchronization?",
+            "reason": "Critical workflows ('sdf') are undefined; needs detailed system integration requirements for backend compatibility.",
+            "answer": "fg"
+        },
+        "#training_data_source": {
+            "question": "Will the AI agent be trained using external data sources (e.g., industry benchmarks, public datasets) or should it be trained from scratch with no pre-existing materials?",
+            "reason": "No training materials ('f') provided; AI agent will require scratch training or external data sourcing.",
+            "answer": "dfg"
+        },
+        "#compliance_constraints": {
+            "question": "Which specific compliance frameworks (e.g., GDPR, HIPAA, CCPA, industry-specific regulations) must the AI agent strictly adhere to for data handling, user consent, and record-keeping?",
+            "reason": "Compliance rules ('asd') reference GDPR/HIPAA/local laws; requires explicit legal framework mapping for data handling.",
+            "answer": "sd"
+        },
+        "#persona_control": {
+            "question": "What specific personality traits (e.g., empathetic, professional, friendly, authoritative) should the AI agent exhibit to effectively engage with the \"sadf\" audience and achieve the business outcomes related to \"asdf\"?",
+            "reason": "Personality definition ('a') is insufficient; needs structured persona parameters for consistent user engagement.",
+            "answer": "fg"
+        },
+        "#recommendation_logic": {
+            "question": "Does the AI agent need to incorporate recommendation logic (e.g., product suggestions, personalized solutions, or decision-tree-based guidance) to achieve the business outcomes related to \"asdf,\" and if so, what criteria or data sources should drive these recommendations?",
+            "reason": "Not applicable - no information provided about recommendation systems or decision-making rules.",
+            "answer": "sdf"
+        },
+        "#booking_handling": {
+            "question": "Does the AI agent need to manage scheduling, reservations, or time-sensitive interactions (e.g., appointment bookings, event registrations, or deadline-based tasks), and if so, what specific systems, user interfaces, or procedural rules should it follow to ensure accuracy and user convenience?",
+            "reason": "Not applicable - no information provided about scheduling, reservations, or time-sensitive interactions.",
+            "answer": "gs"
+        }
+    }
+}

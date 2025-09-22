@@ -1,0 +1,12 @@
+| #  | Question                                                                                                           | Purpose                                              |
+| -- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| 1  | **What is the core problem you want the AI agent to solve for your business?**                                     | Clarifies the real "why" behind deploying the agent  |
+| 2  | **Who is your primary audience or user interacting with this AI?**                                                 | Defines tone, language, empathy level                |
+| 3  | **Which channel(s) will the AI agent operate on? (e.g., website, WhatsApp, voice IVR, etc.)**                      | Affects input/output design and latency expectations |
+| 4  | **What business outcomes do you want the AI to drive? (e.g., reduce support time, increase sales, qualify leads)** | Links AI value to ROI                                |
+| 5  | **What tone or personality should your AI agent reflect? (e.g., formal, casual, friendly, luxury)**                | Shapes the language model and prompt tone            |
+| 6  | **Are there any critical workflows or systems the agent must integrate with?**                                     | Helps plan backend/API design                        |
+| 7  | **How should the agent handle unknowns or sensitive topics?**                                                      | Guides fallback behavior or human escalation         |
+| 8  | **Do you want the agent to follow a fixed script, be dynamic, or a mix?**                                          | Defines autonomy vs. control balance                 |
+| 9  | **What kind of data privacy or compliance rules should we consider? (e.g., GDPR, HIPAA, local laws)**              | Prepares for legal/security filters                  |
+| 10 | **Do you already have materials (FAQs, scripts, tone guides) we can use to train the AI?**                         | Accelerates training and context building            |
