@@ -1,0 +1,34 @@
+{
+  "categories": [
+    {
+      "name": "Burgers",
+      "emoji": "🍔",
+      "items": [
+        { "code": "BG1", "name": "Classic Beef Burger", "price": 85, "description": "Angus beef patty, lettuce, tomato, pickles" },
+        { "code": "BG2", "name": "Chicken Burger", "price": 75, "description": "Crispy chicken fillet, coleslaw, mayo" },
+        { "code": "BG3", "name": "Double Smash Burger", "price": 120, "description": "Two smashed patties, American cheese, special sauce" },
+        { "code": "BG4", "name": "Veggie Burger", "price": 70, "description": "Grilled halloumi, roasted peppers, hummus" }
+      ]
+    },
+    {
+      "name": "Sides",
+      "emoji": "🍟",
+      "items": [
+        { "code": "SD1", "name": "French Fries", "price": 30, "description": "Crispy golden fries" },
+        { "code": "SD2", "name": "Onion Rings", "price": 35, "description": "Beer-battered onion rings" },
+        { "code": "SD3", "name": "Coleslaw", "price": 20, "description": "Creamy homemade coleslaw" },
+        { "code": "SD4", "name": "Cheese Fries", "price": 45, "description": "Loaded fries with cheddar sauce" }
+      ]
+    },
+    {
+      "name": "Drinks",
+      "emoji": "🥤",
+      "items": [
+        { "code": "DR1", "name": "Coca-Cola", "price": 25, "description": "330ml can" },
+        { "code": "DR2", "name": "Fresh Lemonade", "price": 35, "description": "Freshly squeezed with mint" },
+        { "code": "DR3", "name": "Mango Smoothie", "price": 45, "description": "Fresh mango blended with ice" },
+        { "code": "DR4", "name": "Water", "price": 10, "description": "500ml bottle" }
+      ]
+    }
+  ]
+}

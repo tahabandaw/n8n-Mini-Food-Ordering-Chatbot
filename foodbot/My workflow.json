@@ -1,0 +1,992 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1568,
+        816
+      ],
+      "id": "2170c26b-f14c-44f3-b320-f3b07908ca5b",
+      "name": "Telegram Trigger",
+      "webhookId": "09274024-2e86-4f82-aef3-e105e650dd57",
+      "credentials": {
+        "telegramApi": {
+          "id": "me4FrAGpYxrClZq2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId } = $input.first().json;\n\nconst text = '📋 *Our Menu*\\n\\nChoose a category:';\n\nconst replyMarkup = JSON.stringify({\n  inline_keyboard: [\n    [{ text: '🍔 Burgers', callback_data: 'cat_burgers' }],\n    [{ text: '🍟 Sides', callback_data: 'cat_sides' }],\n    [{ text: '🥤 Drinks', callback_data: 'cat_drinks' }],\n    [{ text: '🛒 My Cart', callback_data: 'my_cart' }]\n  ]\n});\n\nreturn [{ json: { chatId, text, replyMarkup, parseMode: 'Markdown' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -288
+      ],
+      "id": "3b09a9c8-1626-436b-bbc4-7adf069a13ec",
+      "name": "Handle View Menu"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId, firstName } = $input.first().json;\n\nconst text = `👋 Welcome to *FoodBot*, ${firstName}!\\n\\nI'm your food ordering assistant. Browse our menu, add items, and checkout.\\n\\nType item codes like \\`BG1 x2\\` or natural text like \"I want a chicken burger and fries\"\\n\\nWhat would you like to do?`;\n\nconst replyMarkup = JSON.stringify({\n  inline_keyboard: [\n    [\n      { text: '📋 View Menu', callback_data: 'view_menu' },\n      { text: '🛒 My Cart', callback_data: 'my_cart' }\n    ],\n    [\n      { text: '✅ Checkout', callback_data: 'checkout' },\n      { text: '❓ Help', callback_data: 'help' }\n    ]\n  ]\n});\n\nreturn [{ json: { chatId, text, replyMarkup, parseMode: 'Markdown' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -480
+      ],
+      "id": "1281f13c-c892-4b49-acbe-401a9557cbb9",
+      "name": "Handle Start"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId } = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.carts) staticData.carts = {};\nconst cart = staticData.carts[chatId] || [];\n\nif (cart.length === 0) {\n  return [{ json: {\n    chatId,\n    text: '🛒 Your cart is empty!\\n\\nBrowse our menu to add items.',\n    replyMarkup: JSON.stringify({\n      inline_keyboard: [[{ text: '📋 View Menu', callback_data: 'view_menu' }]]\n    }),\n    parseMode: 'Markdown'\n  } }];\n}\n\nlet text = '🛒 *Your Cart*\\n\\n';\nlet total = 0;\ncart.forEach((item, i) => {\n  const sub = item.price * item.qty;\n  total += sub;\n  text += `${i+1}. *${item.name}* (${item.code})\\n   ${item.qty}x ${item.price} EGP = ${sub} EGP\\n`;\n});\ntext += `\\n💰 *Total: ${total} EGP*`;\n\nconst replyMarkup = JSON.stringify({\n  inline_keyboard: [\n    [\n      { text: '📋 Add More', callback_data: 'view_menu' },\n      { text: '🗑 Clear Cart', callback_data: 'clear_cart' }\n    ],\n    [{ text: '✅ Checkout', callback_data: 'checkout' }]\n  ]\n});\n\nreturn [{ json: { chatId, text, replyMarkup, parseMode: 'Markdown' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -96
+      ],
+      "id": "552abb30-9db6-4e61-8dd2-5e745d3ef563",
+      "name": "Handle My Cart"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId } = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.carts) staticData.carts = {};\nconst cart = staticData.carts[chatId] || [];\n\nif (cart.length === 0) {\n  return [{ json: {\n    chatId,\n    text: '🛒 Your cart is empty! Add items first.',\n    replyMarkup: JSON.stringify({\n      inline_keyboard: [[{ text: '📋 View Menu', callback_data: 'view_menu' }]]\n    }),\n    parseMode: 'Markdown'\n  } }];\n}\n\nif (!staticData.checkouts) staticData.checkouts = {};\nstaticData.checkouts[chatId] = { step: 'delivery_method' };\n\nlet total = cart.reduce((s, c) => s + c.price * c.qty, 0);\nlet summary = cart.map(c => `• ${c.qty}x ${c.name} — ${c.price * c.qty} EGP`).join('\\n');\n\nconst text = `🧾 *Checkout*\\n\\n${summary}\\n\\n💰 *Total: ${total} EGP*\\n\\nHow would you like to receive your order?`;\n\nconst replyMarkup = JSON.stringify({\n  inline_keyboard: [\n    [\n      { text: '🏪 Pickup', callback_data: 'pickup' },\n      { text: '🚗 Delivery', callback_data: 'delivery' }\n    ],\n    [{ text: '❌ Cancel', callback_data: 'cancel_order' }]\n  ]\n});\n\nreturn [{ json: { chatId, text, replyMarkup, parseMode: 'Markdown' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        96
+      ],
+      "id": "e34111e3-93da-4b1b-8dce-b273d7bb7f24",
+      "name": "Handle Checkout"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId } = $input.first().json;\n\nconst text = `❓ *FoodBot Help*\\n\\n*Commands:*\\n/start — Main menu\\n/menu — Browse menu\\n/cart — View cart\\n/checkout — Checkout\\n/clear — Clear cart\\n\\n*Ordering:*\\n• Tap buttons to add items\\n• Type codes: \\`BG1 x2\\` or \\`SD1, DR2\\`\\n• Or say: \"chicken burger and fries\"\\n\\n*Prices in Egyptian Pounds (EGP)*`;\n\nconst replyMarkup = JSON.stringify({\n  inline_keyboard: [\n    [\n      { text: '📋 View Menu', callback_data: 'view_menu' },\n      { text: '🛒 My Cart', callback_data: 'my_cart' }\n    ]\n  ]\n});\n\nreturn [{ json: { chatId, text, replyMarkup, parseMode: 'Markdown' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        288
+      ],
+      "id": "c58cb1d0-498d-4e94-89fc-50fbe3cb5d01",
+      "name": "Handle Help"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId, callbackData } = $input.first().json;\nconst catKey = callbackData.replace('cat_', '');\n\nconst menu = {\n  burgers: {\n    title: 'Burgers 🍔',\n    items: [\n      { code: 'BG1', name: 'Classic Beef Burger', price: 85, desc: 'Angus beef, lettuce, tomato, pickles' },\n      { code: 'BG2', name: 'Chicken Burger', price: 75, desc: 'Crispy chicken, coleslaw, mayo' },\n      { code: 'BG3', name: 'Double Smash Burger', price: 120, desc: 'Two patties, cheese, special sauce' },\n      { code: 'BG4', name: 'Veggie Burger', price: 70, desc: 'Halloumi, peppers, hummus' }\n    ]\n  },\n  sides: {\n    title: 'Sides 🍟',\n    items: [\n      { code: 'SD1', name: 'French Fries', price: 30, desc: 'Crispy golden fries' },\n      { code: 'SD2', name: 'Onion Rings', price: 35, desc: 'Beer-battered' },\n      { code: 'SD3', name: 'Coleslaw', price: 20, desc: 'Creamy homemade' },\n      { code: 'SD4', name: 'Cheese Fries', price: 45, desc: 'Loaded with cheddar' }\n    ]\n  },\n  drinks: {\n    title: 'Drinks 🥤',\n    items: [\n      { code: 'DR1', name: 'Coca-Cola', price: 25, desc: '330ml can' },\n      { code: 'DR2', name: 'Fresh Lemonade', price: 35, desc: 'Squeezed with mint' },\n      { code: 'DR3', name: 'Mango Smoothie', price: 45, desc: 'Fresh mango & ice' },\n      { code: 'DR4', name: 'Water', price: 10, desc: '500ml bottle' }\n    ]\n  }\n};\n\nconst cat = menu[catKey];\nif (!cat) return [{ json: { chatId, text: '❌ Category not found.', replyMarkup: '{}', parseMode: 'Markdown' } }];\n\nlet text = `*${cat.title}*\\n\\n`;\ncat.items.forEach(i => {\n  text += `*${i.code}* — ${i.name}\\n${i.desc}\\n💰 ${i.price} EGP\\n\\n`;\n});\ntext += '_Tap to add, or type e.g._ `BG1 x2`';\n\nconst buttons = cat.items.map(i => [\n  { text: `➕ ${i.code} - ${i.name} (${i.price} EGP)`, callback_data: `add_${i.code}_1` }\n]);\nbuttons.push([\n  { text: '⬅️ Back', callback_data: 'back_to_menu' },\n  { text: '🛒 Cart', callback_data: 'my_cart' }\n]);\n\nreturn [{ json: { chatId, text, replyMarkup: JSON.stringify({ inline_keyboard: buttons }), parseMode: 'Markdown' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        480
+      ],
+      "id": "e145009a-fd2d-4cb5-9039-e6fd0877b72f",
+      "name": "Handle View Category"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId, callbackData } = $input.first().json;\nconst parts = callbackData.split('_');\nconst itemCode = parts[1];\nconst qty = parseInt(parts[2]) || 1;\n\nconst allItems = [\n  { code: 'BG1', name: 'Classic Beef Burger', price: 85 },\n  { code: 'BG2', name: 'Chicken Burger', price: 75 },\n  { code: 'BG3', name: 'Double Smash Burger', price: 120 },\n  { code: 'BG4', name: 'Veggie Burger', price: 70 },\n  { code: 'SD1', name: 'French Fries', price: 30 },\n  { code: 'SD2', name: 'Onion Rings', price: 35 },\n  { code: 'SD3', name: 'Coleslaw', price: 20 },\n  { code: 'SD4', name: 'Cheese Fries', price: 45 },\n  { code: 'DR1', name: 'Coca-Cola', price: 25 },\n  { code: 'DR2', name: 'Fresh Lemonade', price: 35 },\n  { code: 'DR3', name: 'Mango Smoothie', price: 45 },\n  { code: 'DR4', name: 'Water', price: 10 }\n];\n\nconst item = allItems.find(i => i.code === itemCode);\nif (!item) return [{ json: { chatId, text: '❌ Item not found.', replyMarkup: '{}', parseMode: 'Markdown' } }];\n\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.carts) staticData.carts = {};\nif (!staticData.carts[chatId]) staticData.carts[chatId] = [];\nconst cart = staticData.carts[chatId];\n\nconst existing = cart.find(c => c.code === item.code);\nif (existing) existing.qty += qty;\nelse cart.push({ code: item.code, name: item.name, price: item.price, qty });\n\nconst total = cart.reduce((s, c) => s + c.price * c.qty, 0);\nconst text = `✅ Added: ${qty}x ${item.name} (${item.price * qty} EGP)\\n\\n🛒 Cart total: *${total} EGP*`;\n\nconst replyMarkup = JSON.stringify({\n  inline_keyboard: [\n    [{ text: '📋 Menu', callback_data: 'view_menu' }, { text: '🛒 Cart', callback_data: 'my_cart' }],\n    [{ text: '✅ Checkout', callback_data: 'checkout' }]\n  ]\n});\n\nreturn [{ json: { chatId, text, replyMarkup, parseMode: 'Markdown' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        672
+      ],
+      "id": "83bd29be-ae0f-4391-94d2-74aff88ba88b",
+      "name": "Handle Add From Menu"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId, messageText, firstName } = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\n\n// ── Check if we're in checkout flow ──\nif (!staticData.checkouts) staticData.checkouts = {};\nconst checkout = staticData.checkouts[chatId];\n\nif (checkout && checkout.step && checkout.step !== 'delivery_method') {\n  // CHECKOUT FIELD COLLECTION\n  const step = checkout.step;\n  \n  if (step === 'name') {\n    if (messageText.length < 2 || messageText.length > 50) {\n      return [{ json: { chatId, text: '❌ Please enter a valid name (2-50 chars).', replyMarkup: '{}', parseMode: 'Markdown' } }];\n    }\n    checkout.name = messageText;\n    checkout.step = 'phone';\n    return [{ json: { chatId, text: `👤 Name: *${messageText}*\\n\\nEnter your *phone number*\\n(e.g. 01012345678):`, replyMarkup: '{}', parseMode: 'Markdown' } }];\n  }\n  \n  if (step === 'phone') {\n    const cleaned = messageText.replace(/[\\s\\-\\+]/g, '');\n    const phoneOk = /^(0|\\+?20)1[0125]\\d{8}$/.test(cleaned);\n    if (!phoneOk) {\n      return [{ json: { chatId, text: '❌ Invalid phone. Enter Egyptian mobile:\\nExample: `01012345678`', replyMarkup: '{}', parseMode: 'Markdown' } }];\n    }\n    checkout.phone = cleaned;\n    if (checkout.deliveryMethod === 'delivery') {\n      checkout.step = 'address';\n      return [{ json: { chatId, text: `📱 Phone: *${cleaned}*\\n\\nEnter your *delivery address*:`, replyMarkup: '{}', parseMode: 'Markdown' } }];\n    }\n    // Pickup — skip to confirm\n    checkout.address = 'Pickup in store';\n    checkout.step = 'done';\n    // Show confirmation\n    const cart = staticData.carts[chatId] || [];\n    const total = cart.reduce((s, c) => s + c.price * c.qty, 0);\n    const lines = cart.map(c => `• ${c.qty}x ${c.name} — ${c.price * c.qty} EGP`).join('\\n');\n    return [{ json: {\n      chatId,\n      text: `📋 *Order Summary*\\n\\n${lines}\\n\\n💰 *Total: ${total} EGP*\\n\\n🏪 Pickup\\n👤 ${checkout.name}\\n📱 ${checkout.phone}\\n\\n*Confirm?*`,\n      replyMarkup: JSON.stringify({ inline_keyboard: [[\n        { text: '✅ Confirm', callback_data: 'confirm_order' },\n        { text: '❌ Cancel', callback_data: 'cancel_order' }\n      ]] }),\n      parseMode: 'Markdown'\n    } }];\n  }\n  \n  if (step === 'address') {\n    if (messageText.length < 5) {\n      return [{ json: { chatId, text: '❌ Address too short (min 5 chars).', replyMarkup: '{}', parseMode: 'Markdown' } }];\n    }\n    checkout.address = messageText;\n    checkout.step = 'done';\n    const cart = staticData.carts[chatId] || [];\n    const total = cart.reduce((s, c) => s + c.price * c.qty, 0);\n    const lines = cart.map(c => `• ${c.qty}x ${c.name} — ${c.price * c.qty} EGP`).join('\\n');\n    return [{ json: {\n      chatId,\n      text: `📋 *Order Summary*\\n\\n${lines}\\n\\n💰 *Total: ${total} EGP*\\n\\n🚗 Delivery\\n👤 ${checkout.name}\\n📱 ${checkout.phone}\\n📍 ${checkout.address}\\n\\n*Confirm?*`,\n      replyMarkup: JSON.stringify({ inline_keyboard: [[\n        { text: '✅ Confirm', callback_data: 'confirm_order' },\n        { text: '❌ Cancel', callback_data: 'cancel_order' }\n      ]] }),\n      parseMode: 'Markdown'\n    } }];\n  }\n}\n\n// ── NOT in checkout — Parse as order ──\nconst allItems = [\n  { code: 'BG1', name: 'Classic Beef Burger', price: 85 },\n  { code: 'BG2', name: 'Chicken Burger', price: 75 },\n  { code: 'BG3', name: 'Double Smash Burger', price: 120 },\n  { code: 'BG4', name: 'Veggie Burger', price: 70 },\n  { code: 'SD1', name: 'French Fries', price: 30 },\n  { code: 'SD2', name: 'Onion Rings', price: 35 },\n  { code: 'SD3', name: 'Coleslaw', price: 20 },\n  { code: 'SD4', name: 'Cheese Fries', price: 45 },\n  { code: 'DR1', name: 'Coca-Cola', price: 25 },\n  { code: 'DR2', name: 'Fresh Lemonade', price: 35 },\n  { code: 'DR3', name: 'Mango Smoothie', price: 45 },\n  { code: 'DR4', name: 'Water', price: 10 }\n];\n\n// STEP 1: Structured code parsing\nconst codePattern = /([A-Z]{2}\\d)\\s*(?:[xX×]\\s*(\\d+))?/g;\nlet match;\nconst parsed = [];\nconst upper = messageText.toUpperCase();\nwhile ((match = codePattern.exec(upper)) !== null) {\n  const code = match[1];\n  const qty = parseInt(match[2]) || 1;\n  const found = allItems.find(i => i.code === code);\n  if (found) parsed.push({ ...found, qty });\n}\n\nif (parsed.length > 0) {\n  // Add to cart\n  if (!staticData.carts) staticData.carts = {};\n  if (!staticData.carts[chatId]) staticData.carts[chatId] = [];\n  const cart = staticData.carts[chatId];\n  const lines = [];\n  for (const item of parsed) {\n    const ex = cart.find(c => c.code === item.code);\n    if (ex) ex.qty += item.qty;\n    else cart.push({ code: item.code, name: item.name, price: item.price, qty: item.qty });\n    lines.push(`${item.qty}x ${item.name} (${item.price * item.qty} EGP)`);\n  }\n  const total = cart.reduce((s, c) => s + c.price * c.qty, 0);\n  return [{ json: {\n    chatId,\n    text: `✅ Added:\\n${lines.map(l => '• ' + l).join('\\n')}\\n\\n📝 _Parsed from code_\\n🛒 Total: *${total} EGP*`,\n    replyMarkup: JSON.stringify({ inline_keyboard: [\n      [{ text: '📋 Menu', callback_data: 'view_menu' }, { text: '🛒 Cart', callback_data: 'my_cart' }],\n      [{ text: '✅ Checkout', callback_data: 'checkout' }]\n    ] }),\n    parseMode: 'Markdown'\n  } }];\n}\n\n// STEP 2: Mark for AI processing\nreturn [{ json: {\n  chatId,\n  messageText,\n  firstName,\n  needsAI: true\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        864
+      ],
+      "id": "c6cdb090-ff51-4f17-aea9-ad4faa529155",
+      "name": "Handle Free Text"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId } = $input.first().json;\nreturn [{ json: {\n  chatId,\n  text: '⚠️ Clear your entire cart?',\n  replyMarkup: JSON.stringify({\n    inline_keyboard: [[\n      { text: '✅ Yes, clear', callback_data: 'confirm_clear' },\n      { text: '❌ Cancel', callback_data: 'cancel_clear' }\n    ]]\n  }),\n  parseMode: 'Markdown'\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        1152
+      ],
+      "id": "ad76265f-b05e-4e56-a3d4-f65b0bedc817",
+      "name": "Handle Clear Cart"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId } = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\nif (staticData.carts) staticData.carts[chatId] = [];\n\nreturn [{ json: {\n  chatId,\n  text: '🗑 Cart cleared!',\n  replyMarkup: JSON.stringify({\n    inline_keyboard: [[{ text: '📋 View Menu', callback_data: 'view_menu' }]]\n  }),\n  parseMode: 'Markdown'\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        1344
+      ],
+      "id": "bed94e1f-b94e-4bf8-93da-26700ca39637",
+      "name": "Handle Confirm Clear"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId, callbackData } = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.checkouts) staticData.checkouts = {};\nif (!staticData.checkouts[chatId]) staticData.checkouts[chatId] = {};\n\nstaticData.checkouts[chatId].deliveryMethod = callbackData;\nstaticData.checkouts[chatId].step = 'name';\n\nconst emoji = callbackData === 'pickup' ? '🏪' : '🚗';\nreturn [{ json: {\n  chatId,\n  text: `${emoji} *${callbackData}* selected!\\n\\nPlease type your *full name*:`,\n  replyMarkup: '{}',\n  parseMode: 'Markdown'\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        1536
+      ],
+      "id": "4d0fd5ea-f736-46fd-b31e-ec97ee295688",
+      "name": "Handle Set Delivery"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId } = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\nconst cart = (staticData.carts && staticData.carts[chatId]) || [];\nconst checkout = (staticData.checkouts && staticData.checkouts[chatId]) || {};\n\nif (cart.length === 0) {\n  return [{ json: {\n    chatId,\n    text: '❌ Cart is empty.',\n    replyMarkup: JSON.stringify({ inline_keyboard: [[{ text: '📋 Menu', callback_data: 'view_menu' }]] }),\n    parseMode: 'Markdown'\n  } }];\n}\n\nif (!staticData.orderCounter) staticData.orderCounter = 1000;\nstaticData.orderCounter++;\nconst orderId = `ORD-${staticData.orderCounter}`;\n\nconst total = cart.reduce((s, c) => s + c.price * c.qty, 0);\nconst lines = cart.map(c => `• ${c.qty}x ${c.name} — ${c.price * c.qty} EGP`).join('\\n');\n\n// Store order\nif (!staticData.orders) staticData.orders = {};\nstaticData.orders[orderId] = {\n  orderId, chatId, items: [...cart], total,\n  ...checkout, timestamp: new Date().toISOString()\n};\n\n// Clear\nstaticData.carts[chatId] = [];\ndelete staticData.checkouts[chatId];\n\nconst emoji = checkout.deliveryMethod === 'pickup' ? '🏪' : '🚗';\nconst est = checkout.deliveryMethod === 'pickup' ? '15-20' : '30-45';\n\nconst text = `🎉 *Order Confirmed!*\\n\\n🆔 *${orderId}*\\n\\n${lines}\\n\\n💰 *Total: ${total} EGP*\\n\\n${emoji} ${checkout.deliveryMethod || 'N/A'}\\n👤 ${checkout.name || 'N/A'}\\n📱 ${checkout.phone || 'N/A'}\\n📍 ${checkout.address || 'N/A'}\\n\\n⏱ Est: ${est} min\\n\\nThank you! 🙏`;\n\nreturn [{ json: {\n  chatId, text,\n  replyMarkup: JSON.stringify({ inline_keyboard: [[{ text: '📋 New Order', callback_data: 'view_menu' }]] }),\n  parseMode: 'Markdown',\n  orderId, orderTotal: total, orderItems: lines,\n  customerName: checkout.name, customerPhone: checkout.phone,\n  deliveryMethod: checkout.deliveryMethod, address: checkout.address\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        1728
+      ],
+      "id": "2aa6eb69-0bda-4344-8c06-5de85017c355",
+      "name": "Handle Confirm Order"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatId } = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\nif (staticData.checkouts) delete staticData.checkouts[chatId];\n\nreturn [{ json: {\n  chatId,\n  text: '❌ Order cancelled. Your cart items are still saved.',\n  replyMarkup: JSON.stringify({\n    inline_keyboard: [\n      [{ text: '📋 Menu', callback_data: 'view_menu' }, { text: '🛒 Cart', callback_data: 'my_cart' }]\n    ]\n  }),\n  parseMode: 'Markdown'\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        1920
+      ],
+      "id": "cc680545-d2c6-4e0a-a693-4cac9d80368d",
+      "name": "Handle Cancel Order"
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatId = $input.first().json.chatId || '';\nreturn [{ json: {\n  chatId,\n  text: \"🤷 I didn't understand that. Try /help or /menu!\",\n  replyMarkup: JSON.stringify({\n    inline_keyboard: [[{ text: '📋 Menu', callback_data: 'view_menu' }, { text: '❓ Help', callback_data: 'help' }]]\n  }),\n  parseMode: 'Markdown'\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        2112
+      ],
+      "id": "d36bfe00-bc8f-4440-8f2c-8439b3206885",
+      "name": "Handle Fallback"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ecf6f9b7-f90e-403a-9b8e-51221cdd1643",
+              "leftValue": "={{ $json.needsAI }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -640,
+        864
+      ],
+      "id": "94728809-3891-4ae2-99fc-540a13c147f5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $input.first().json;\nconst chatId = $('Router').first().json.chatId;\nconst messageText = $('Router').first().json.messageText;\nconst staticData = $getWorkflowStaticData('global');\n\nconst allItems = [\n  { code: 'BG1', name: 'Classic Beef Burger', price: 85 },\n  { code: 'BG2', name: 'Chicken Burger', price: 75 },\n  { code: 'BG3', name: 'Double Smash Burger', price: 120 },\n  { code: 'BG4', name: 'Veggie Burger', price: 70 },\n  { code: 'SD1', name: 'French Fries', price: 30 },\n  { code: 'SD2', name: 'Onion Rings', price: 35 },\n  { code: 'SD3', name: 'Coleslaw', price: 20 },\n  { code: 'SD4', name: 'Cheese Fries', price: 45 },\n  { code: 'DR1', name: 'Coca-Cola', price: 25 },\n  { code: 'DR2', name: 'Fresh Lemonade', price: 35 },\n  { code: 'DR3', name: 'Mango Smoothie', price: 45 },\n  { code: 'DR4', name: 'Water', price: 10 },\n];\n\nlet parsed = [];\nlet method = 'ai';\nlet chatResponse = '';\nlet responseType = 'unknown';\n\n// ── Try parsing AI response ──\ntry {\n  let aiText = '';\n  if (input.choices && input.choices[0]) {\n    aiText = input.choices[0].message.content;\n  }\n  // Clean markdown fences\n  aiText = aiText.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  \n  // Sometimes model wraps in <think>...</think> tags (qwen3 does this)\n  aiText = aiText.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n  \n  const result = JSON.parse(aiText);\n\n  if (result.type === 'chat' && result.message) {\n    // ── AI wants to CHAT (not an order) ──\n    responseType = 'chat';\n    chatResponse = result.message;\n  } else if (result.type === 'order' && result.items) {\n    // ── AI extracted an ORDER ──\n    responseType = 'order';\n    for (const ai of result.items) {\n      const found = allItems.find(i => i.code === ai.code);\n      if (found) parsed.push({ ...found, qty: Math.max(1, parseInt(ai.qty) || 1) });\n    }\n  } else if (result.items) {\n    // ── Fallback: old format without type field ──\n    responseType = 'order';\n    for (const ai of result.items) {\n      const found = allItems.find(i => i.code === ai.code);\n      if (found) parsed.push({ ...found, qty: Math.max(1, parseInt(ai.qty) || 1) });\n    }\n  }\n} catch (e) {\n  // AI returned invalid JSON — try extracting text anyway\n  method = 'keyword_fallback';\n  \n  // Check if AI returned plain text (not JSON)\n  let aiText = '';\n  try {\n    if (input.choices && input.choices[0]) {\n      aiText = input.choices[0].message.content || '';\n      aiText = aiText.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n    }\n  } catch(e2) {}\n  \n  // If AI returned something readable but not JSON, use it as chat\n  if (aiText.length > 10 && !aiText.startsWith('{')) {\n    responseType = 'chat';\n    chatResponse = aiText;\n  }\n}\n\n// ── If AI said it's a CHAT response, send the message directly ──\nif (responseType === 'chat' && chatResponse) {\n  return [{ json: {\n    chatId,\n    text: `🤖 ${chatResponse}`,\n    replyMarkup: JSON.stringify({ inline_keyboard: [\n      [{ text: '📋 View Menu', callback_data: 'view_menu' }, { text: '❓ Help', callback_data: 'help' }],\n      [{ text: '🛒 My Cart', callback_data: 'my_cart' }]\n    ] }),\n    parseMode: 'Markdown'\n  } }];\n}\n\n// ── Keyword fallback if AI returned order but nothing matched ──\nif (parsed.length === 0) {\n  method = 'keyword_fallback';\n  const lower = messageText.toLowerCase();\n  const kw = {\n    'beef burger': 'BG1', 'classic burger': 'BG1',\n    'chicken burger': 'BG2', 'chicken': 'BG2',\n    'double smash': 'BG3', 'smash burger': 'BG3',\n    'veggie burger': 'BG4', 'veggie': 'BG4', 'halloumi': 'BG4',\n    'french fries': 'SD1', 'fries': 'SD1', 'chips': 'SD1',\n    'onion rings': 'SD2', 'rings': 'SD2',\n    'coleslaw': 'SD3', 'slaw': 'SD3',\n    'cheese fries': 'SD4', 'loaded fries': 'SD4',\n    'coca cola': 'DR1', 'coca-cola': 'DR1', 'coke': 'DR1', 'cola': 'DR1',\n    'lemonade': 'DR2', 'lemon': 'DR2',\n    'mango smoothie': 'DR3', 'mango': 'DR3', 'smoothie': 'DR3',\n    'water': 'DR4',\n  };\n  const sorted = Object.keys(kw).sort((a, b) => b.length - a.length);\n  const seen = new Set();\n  for (const k of sorted) {\n    if (lower.includes(k) && !seen.has(kw[k])) {\n      seen.add(kw[k]);\n      const item = allItems.find(i => i.code === kw[k]);\n      if (item) parsed.push({ ...item, qty: 1 });\n    }\n  }\n}\n\n// ── Still nothing? Send helpful message ──\nif (parsed.length === 0) {\n  return [{ json: {\n    chatId,\n    text: '🤔 I couldn\\'t find menu items in your message.\\n\\nTry:\\n• Codes like `BG1 x2`\\n• Or say \"chicken burger and fries\"\\n• Type /menu to browse!\\n• Type /help for more info',\n    replyMarkup: JSON.stringify({ inline_keyboard: [\n      [{ text: '📋 View Menu', callback_data: 'view_menu' }, { text: '❓ Help', callback_data: 'help' }]\n    ] }),\n    parseMode: 'Markdown'\n  } }];\n}\n\n// ── Add to cart ──\nif (!staticData.carts) staticData.carts = {};\nif (!staticData.carts[chatId]) staticData.carts[chatId] = [];\nconst cart = staticData.carts[chatId];\n\nconst lines = [];\nfor (const item of parsed) {\n  const ex = cart.find(c => c.code === item.code);\n  if (ex) ex.qty += item.qty;\n  else cart.push({ code: item.code, name: item.name, price: item.price, qty: item.qty });\n  lines.push(`${item.qty}x ${item.name} (${item.price * item.qty} EGP)`);\n}\nconst total = cart.reduce((s, c) => s + c.price * c.qty, 0);\nconst icon = method === 'ai' ? '🤖 _AI parsed_' : '🔍 _Keyword match_';\n\nreturn [{ json: {\n  chatId,\n  text: `✅ Added:\\n${lines.map(l => '• ' + l).join('\\n')}\\n\\n${icon}\\n🛒 Total: *${total} EGP*`,\n  replyMarkup: JSON.stringify({ inline_keyboard: [\n    [{ text: '📋 Menu', callback_data: 'view_menu' }, { text: '🛒 Cart', callback_data: 'my_cart' }],\n    [{ text: '✅ Checkout', callback_data: 'checkout' }]\n  ] }),\n  parseMode: 'Markdown'\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        928
+      ],
+      "id": "becc41bb-801b-4db9-b139-8b8485a80508",
+      "name": "Parse AI + Fallback"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama3.1:8b\",\n  \"temperature\": 0.1,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are FoodBot, a friendly Telegram food ordering assistant for a burger restaurant in Egypt. Prices are in EGP.\\n\\nMENU:\\nBG1: Classic Beef Burger — 85 EGP (Angus beef, lettuce, tomato, pickles)\\nBG2: Chicken Burger — 75 EGP (Crispy chicken, coleslaw, mayo)\\nBG3: Double Smash Burger — 120 EGP (Two patties, cheese, special sauce)\\nBG4: Veggie Burger — 70 EGP (Halloumi, peppers, hummus)\\nSD1: French Fries — 30 EGP\\nSD2: Onion Rings — 35 EGP\\nSD3: Coleslaw — 20 EGP\\nSD4: Cheese Fries — 45 EGP\\nDR1: Coca-Cola — 25 EGP\\nDR2: Fresh Lemonade — 35 EGP\\nDR3: Mango Smoothie — 45 EGP\\nDR4: Water — 10 EGP\\n\\nYour job:\\n1. If the user is trying to ORDER food, extract the items and respond with ONLY this JSON:\\n{\\\"type\\\":\\\"order\\\",\\\"items\\\":[{\\\"code\\\":\\\"BG1\\\",\\\"qty\\\":2}]}\\n\\n2. If the user is asking a QUESTION (what can you do, what's on the menu, recommend something, etc), respond with:\\n{\\\"type\\\":\\\"chat\\\",\\\"message\\\":\\\"your helpful response here\\\"}\\n\\n3. If the user says something unrelated to food/ordering, respond with :\\n{\\\"type\\\":\\\"chat\\\",\\\"message\\\":\\\"I'm FoodBot! I can help you order delicious food. Type /menu to see our menu, or just tell me what you'd like to eat!\\\"}\\n\\nRules:\\n- ALWAYS respond with valid JSON only, no markdown, no extra text\\n- For orders, match user text to the CLOSEST menu item\\n- Be friendly and helpful in chat responses\\n- If someone asks for recommendations, suggest popular items\\n- Keep chat responses short (1-3 sentences)\\n- If ambiguous between order and question, treat as order\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ $('Router').first().json.messageText }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -400,
+        944
+      ],
+      "id": "10ab83c8-478e-4fe0-b509-dda83321c545",
+      "name": "Ollama LLM",
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "=start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "64ab18dc-2697-4be1-b3e1-1692d449c759"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "75476541-ce00-46f3-b26a-04f0d3ba7120",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "view_menu",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "18e14686-66e9-427e-ae76-121fa875727a",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "my_cart",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3c9f0beb-acc6-4d34-a1b2-2d1be1b42318",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "checkout",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1e564903-69b3-4fc1-b78f-25a1da76ba8e",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6f189a3d-58ad-49ea-97ff-8da14f182012",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "view_category",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d6463c1b-fb85-4ad3-b019-cf6c9be3cfba",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "add_from_menu",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "04654edb-13bc-4d21-874c-a58c9340f688",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "free_text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d513d61b-ae50-45c2-90d6-51e102b4afeb",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "clear_cart",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7580c679-a1b2-4df1-949f-7ead8c123de2",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "confirm_clear",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c5372a12-1001-4699-8f28-ae93af47ec01",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "set_delivery_method",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "275906f0-d03a-44ce-921c-dcf484c71111",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "confirm_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ca1a9883-ad81-4a51-8a56-f1b60269316d",
+                    "leftValue": "={{ $json.routeType }}",
+                    "rightValue": "cancel_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1216,
+        656
+      ],
+      "id": "670240f8-ac04-4921-9c0e-6f986c216b89",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════\n// ROUTER: Determine what type of input we received\n// ═══════════════════════════════════════════════════════════\n\nconst input = $input.first().json;\nlet routeType = 'unknown';\nlet chatId = '';\nlet messageText = '';\nlet callbackData = '';\nlet firstName = '';\n\n// Check if this is a callback query (inline button press)\nif (input.callback_query) {\n  chatId = String(input.callback_query.message.chat.id);\n  callbackData = input.callback_query.data;\n  firstName = input.callback_query.from.first_name || 'there';\n  \n  if (callbackData === 'view_menu') routeType = 'view_menu';\n  else if (callbackData === 'my_cart') routeType = 'my_cart';\n  else if (callbackData === 'checkout') routeType = 'checkout';\n  else if (callbackData === 'help') routeType = 'help';\n  else if (callbackData === 'clear_cart') routeType = 'clear_cart';\n  else if (callbackData === 'confirm_clear') routeType = 'confirm_clear';\n  else if (callbackData === 'cancel_clear') routeType = 'my_cart';\n  else if (callbackData.startsWith('cat_')) routeType = 'view_category';\n  else if (callbackData.startsWith('add_')) routeType = 'add_from_menu';\n  else if (callbackData === 'back_to_menu') routeType = 'view_menu';\n  else if (callbackData === 'pickup') routeType = 'set_delivery_method';\n  else if (callbackData === 'delivery') routeType = 'set_delivery_method';\n  else if (callbackData === 'confirm_order') routeType = 'confirm_order';\n  else if (callbackData === 'cancel_order') routeType = 'cancel_order';\n  else routeType = 'unknown_callback';\n  \n} else if (input.message) {\n  chatId = String(input.message.chat.id);\n  messageText = (input.message.text || '').trim();\n  firstName = input.message.from.first_name || 'there';\n  \n  if (messageText === '/start') routeType = 'start';\n  else if (messageText === '/menu') routeType = 'view_menu';\n  else if (messageText === '/cart') routeType = 'my_cart';\n  else if (messageText === '/checkout') routeType = 'checkout';\n  else if (messageText === '/help') routeType = 'help';\n  else if (messageText === '/clear') routeType = 'clear_cart';\n  else routeType = 'free_text';\n}\n\nreturn [{\n  json: {\n    routeType,\n    chatId,\n    messageText,\n    callbackData,\n    firstName\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1344,
+        816
+      ],
+      "id": "bbeee688-654f-4416-aef2-f2b770f3b756",
+      "name": "Router"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=chat_id",
+              "value": "={{ $json.chatId }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "name": "parse_mode",
+              "value": "={{ $json.parseMode }}"
+            },
+            {
+              "name": "reply_markup",
+              "value": "={{ $json.replyMarkup }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        816
+      ],
+      "id": "962c005a-24a7-43e6-81f3-1410a4e89dfe",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {
+    "Handle View Category": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Free Text": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Ollama LLM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI + Fallback": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama LLM": {
+      "main": [
+        [
+          {
+            "node": "Parse AI + Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Start": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle View Menu": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle My Cart": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Checkout": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Help": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle View Category": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Add From Menu": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Clear Cart": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Confirm Clear": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Set Delivery": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Confirm Order": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Cancel Order": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Fallback": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Handle Start",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle View Menu",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle My Cart",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Checkout",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Help",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle View Category",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Add From Menu",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Free Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Clear Cart",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Confirm Clear",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Set Delivery",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Confirm Order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Cancel Order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "42af37b5-7ebc-4068-92f3-a374e9b5778d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9d3a491d2c74c6f23942e5fc46ca195d6e44ece66b5a0d79be60f66cf4fd19b9"
+  },
+  "id": "TQ6xhRIyyJpEHCfE",
+  "tags": []
+}
